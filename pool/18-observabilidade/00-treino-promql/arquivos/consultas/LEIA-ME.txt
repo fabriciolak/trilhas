@@ -1,0 +1,1 @@
+Escreva uma consulta PromQL por arquivo: q1.promql, q2.promql... (veja o TICKET).
