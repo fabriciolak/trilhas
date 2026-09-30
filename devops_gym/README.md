@@ -5,9 +5,9 @@ incidentes de verdade num servidor descartável. Funciona no **Windows**, no **L
 no **macOS**: o laboratório é um Ubuntu 24.04 com systemd rodando no Docker.
 
 - **60 itens em três níveis**, do básico ao avançado, cobrindo as 26 semanas:
-  - **20 treinos** (•): uma **aula** com exemplos e passos pequenos verificados, para
+  - **23 treinos** (•): uma **aula** com exemplos e passos pequenos verificados, para
     aprender o assunto da semana antes do incidente;
-  - **34 tickets** (••): incidentes de verdade. Disco lotado, log em chamas, processo
+  - **31 tickets** (••, alguns •••): incidentes de verdade. Disco lotado, log em chamas, processo
     imortal, serviço que não sobe, DNS mentindo, container que morre, pipeline quebrado,
     Terraform com drift, bucket exposto, pod em CrashLoopBackOff, alerta que não dispara...
   - **6 chefes** (•••): no fim de cada mês, vários problemas juntos, como num plantão
