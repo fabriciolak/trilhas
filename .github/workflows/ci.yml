@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  testes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Tipos
+        run: pnpm typecheck
+      - name: Testes (núcleo, MCP e site)
+        run: pnpm test
+      - name: Trilhas (inicial reprova, solução aprova)
+        run: pnpm validar
+      - name: Build do site
+        run: pnpm --filter @trilhas/web build
+      - name: Navegador para o e2e
+        run: pnpm --filter @trilhas/web exec playwright install --with-deps chromium
+      - name: e2e (Playwright)
+        run: pnpm e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright
+          path: |
+            apps/web/test-results
+            apps/web/playwright-report
+          retention-days: 7

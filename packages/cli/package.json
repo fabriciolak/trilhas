@@ -10,7 +10,6 @@
   },
   "scripts": {
     "build": "esbuild src/main.ts --bundle --platform=node --format=esm --target=node20 --outfile=dist/trilhas.js --banner:js=\"#!/usr/bin/env node\"",
-    "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

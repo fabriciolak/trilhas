@@ -1,10 +1,11 @@
 /**
  * trilhas: a linha de comando das trilhas.
  *
- *   trilhas validar <trilha.json>... [--gravar]   inicial reprova e solução aprova, em cada item com código
+ *   trilhas validar <trilha.json | pasta>... [--gravar]   inicial reprova e solução aprova, em cada item com código
  *   trilhas importar-gym <pasta do devops_gym> [-o saida.json]
  */
-import { readFile, writeFile } from "node:fs/promises";
+import { readFile, readdir, stat, writeFile } from "node:fs/promises";
+import { join } from "node:path";
 import { lerTrilha, marcarVerificados, validarTrilha } from "@trilhas/nucleo";
 import { criarExecutorNode, importarDevopsGym } from "@trilhas/nucleo/node";
 
@@ -15,7 +16,7 @@ const fraco = (s: string) => (cor ? `\x1b[2m${s}\x1b[0m` : s);
 
 const AJUDA = `trilhas: valida e importa trilhas de estudo
 
-  trilhas validar <trilha.json>... [--gravar]
+  trilhas validar <trilha.json | pasta>... [--gravar]
       Confere o esquema e roda os testes de cada item com código: o inicial precisa
       reprovar e a solução, aprovar. Com --gravar, marca "verificado" no arquivo.
 
@@ -25,7 +26,13 @@ const AJUDA = `trilhas: valida e importa trilhas de estudo
 
 async function validar(args: string[]): Promise<number> {
   const gravar = args.includes("--gravar");
-  const arquivos = args.filter((a) => !a.startsWith("--"));
+  const arquivos: string[] = [];
+  for (const a of args.filter((a) => !a.startsWith("--"))) {
+    // Uma pasta vale pelos .json dentro dela (o mesmo em qualquer sistema, sem depender do shell).
+    const ehPasta = await stat(a).then((s) => s.isDirectory(), () => false);
+    if (ehPasta) arquivos.push(...(await readdir(a)).filter((n) => n.endsWith(".json")).sort().map((n) => join(a, n)));
+    else arquivos.push(a);
+  }
   if (arquivos.length === 0) {
     process.stderr.write(AJUDA);
     return 2;

@@ -3,21 +3,7 @@ import { CircleCheck, CircleX } from "lucide-react";
 import { useState } from "react";
 import { Markdown } from "../componentes/Markdown.tsx";
 import { Botao } from "../componentes/ui.tsx";
-
-const normalizar = (s: string) =>
-  s
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .toLowerCase()
-    .replace(/[`"'.,;:!?()]/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
-
-export function acertou(q: Questao, resposta: number | string | null | undefined): boolean {
-  if (resposta === null || resposta === undefined || resposta === "") return false;
-  if (typeof q.resposta === "number") return Number(resposta) === q.resposta;
-  return normalizar(String(resposta)) === normalizar(q.resposta);
-}
+import { acertou } from "./correcao.ts";
 
 export function Questoes({
   questoes,

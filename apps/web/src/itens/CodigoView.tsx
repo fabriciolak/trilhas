@@ -295,6 +295,7 @@ export function CodigoView({
         <CodeMirror
           value={conteudoAtivo ?? ""}
           height="100%"
+          className="h-full"
           theme={escuro ? oneDark : "light"}
           extensions={extensoes}
           editable={!ehLeitura}

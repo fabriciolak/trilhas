@@ -99,7 +99,7 @@ export function ItemPagina({ trilhaId, itemId }: { trilhaId: string; itemId: str
   return (
     <div className={`flex flex-col ${comCodigo && largo ? "h-[calc(100dvh-3.5rem)]" : ""}`}>
       <div className="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-1 border-b border-borda bg-superficie px-4 py-2">
-        <div className="min-w-0 flex-1">
+        <div className="min-w-0 basis-full sm:basis-auto sm:flex-1">
           <p className="truncate text-xs text-texto-3">
             <a href={href.trilha(trilha.id)} className="hover:underline">
               {trilha.titulo}
@@ -114,7 +114,7 @@ export function ItemPagina({ trilhaId, itemId }: { trilhaId: string; itemId: str
             <Nivel nivel={item.nivel} />
           </h1>
         </div>
-        <div className="flex items-center gap-1">
+        <div className="ml-auto flex items-center gap-1">
           {!tutorAberto && <BotaoAbrirNoClaude trilha={trilha} item={item} contexto={contexto} />}
           <Botao variante={tutorAberto ? "primaria" : "secundaria"} icone={Bot} onClick={() => setTutorAberto(!tutorAberto)} aria-pressed={tutorAberto}>
             Tutor

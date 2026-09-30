@@ -13,8 +13,8 @@
     "build": "pnpm -r build",
     "test": "pnpm -r test",
     "typecheck": "pnpm -r typecheck",
-    "validar": "pnpm --filter @trilhas/cli exec trilhas validar ../../trilhas/*.json",
-    "importar-gym": "node scripts/importar-devops-gym.mjs",
+    "validar": "pnpm --filter @trilhas/cli build && node packages/cli/dist/trilhas.js validar trilhas",
+    "importar-gym": "pnpm --filter @trilhas/cli build && node packages/cli/dist/trilhas.js importar-gym devops_gym -o trilhas/devops-linux.json",
     "e2e": "pnpm --filter @trilhas/web e2e"
   }
 }
