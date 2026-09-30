@@ -1,0 +1,27 @@
+{
+  "name": "@trilhas/mcp",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Servidor MCP das trilhas: o Claude Desktop/Code lê, cria e acompanha trilhas numa pasta de trabalho.",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "trilhas-mcp": "./dist/trilhas-mcp.js"
+  },
+  "scripts": {
+    "build": "esbuild src/main.ts --bundle --platform=node --format=esm --target=node20 --outfile=dist/trilhas-mcp.js --banner:js=\"#!/usr/bin/env node\nimport { createRequire as __cr } from 'node:module'; const require = __cr(import.meta.url);\"",
+    "test": "pnpm build && vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.31.0",
+    "@trilhas/nucleo": "workspace:*",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.0",
+    "esbuild": "^0.25.0",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.3"
+  }
+}
