@@ -1,0 +1,38 @@
+# Complete este arquivo seguindo o TICKET. Os comentários com >>> marcam onde entra cada peça.
+
+# >>> 1. o ConfigMap app-config (COR e mensagem.txt)
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app
+  namespace: treino-config
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: app
+  template:
+    metadata:
+      labels:
+        app: app
+    spec:
+      containers:
+        - name: app
+          image: python:3.14-alpine
+          command: ["python", "-u", "/codigo/app.py"]
+          ports:
+            - containerPort: 8080
+          # >>> 3. env (COR do ConfigMap, SENHA do Secret)
+          # >>> 4. resources
+          # >>> 5. readinessProbe e livenessProbe
+          volumeMounts:
+            - name: codigo
+              mountPath: /codigo
+            # >>> 3. o ConfigMap app-config montado em /config
+      volumes:
+        - name: codigo
+          configMap:
+            name: app-codigo
+        # >>> 3. o volume do ConfigMap app-config
