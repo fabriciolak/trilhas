@@ -17,7 +17,7 @@ RUN rm -f /etc/dpkg/dpkg.cfg.d/excludes /etc/update-motd.d/60-unminimize \
       man-db manpages manpages-pt-br less vim nano bash-completion \
       procps psmisc lsof file tree tmux \
       curl wget ca-certificates iproute2 iputils-ping dnsutils netcat-openbsd \
-      openssh-server openssh-client nginx cron logrotate python3 ansible-core \
+      openssh-server openssh-client nginx cron logrotate python3 ansible-core git \
  && if [ -e /usr/bin/man.REAL ]; then rm -f /usr/bin/man && dpkg-divert --quiet --local --rename --remove /usr/bin/man; fi \
  && apt-get install -y --reinstall --no-install-recommends \
       coreutils util-linux procps findutils grep sed gzip tar diffutils passwd login bash \
