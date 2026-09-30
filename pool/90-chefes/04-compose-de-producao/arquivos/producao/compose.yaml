@@ -1,0 +1,34 @@
+# Loja da Pinguim em produção: um servidor só, tudo no Compose.
+# Veio do ambiente de desenvolvimento "do jeito que estava".
+name: gym-producao
+
+services:
+  web:
+    image: nginx:latest
+    ports:
+      - "8383:80"
+    volumes:
+      - ./web/loja.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - api
+
+  api:
+    build: ./api
+    image: gym-producao-api
+    environment:
+      REDIS_HOST: cache
+      SENHA_ADMIN: pinguim123
+    ports:
+      - "8000:8000"
+    depends_on:
+      - cache
+
+  cache:
+    image: redis:8-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - dados:/data
+
+volumes:
+  dados:
