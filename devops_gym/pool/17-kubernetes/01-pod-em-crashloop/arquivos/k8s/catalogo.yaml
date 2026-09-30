@@ -1,0 +1,59 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: catalogo-codigo
+  namespace: vitrine
+data:
+  servidor.py: |
+    """Catálogo da Pinguim Store (simulado para o DevOps Gym)."""
+    import json
+    import os
+    import sys
+    from http.server import BaseHTTPRequestHandler, HTTPServer
+
+    banco = os.environ.get("BANCO_URL")
+    if not banco:
+        print("FATAL catalogo: BANCO_URL não definida; não sei onde fica o banco", file=sys.stderr, flush=True)
+        sys.exit(1)
+
+    class Catalogo(BaseHTTPRequestHandler):
+        def do_GET(self):
+            corpo = json.dumps({"servico": "catalogo", "status": "ok"}).encode()
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(corpo)
+
+    print(f"catalogo: ouvindo na 8080, banco em {banco}", flush=True)
+    HTTPServer(("0.0.0.0", 8080), Catalogo).serve_forever()
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: catalogo
+  namespace: vitrine
+  labels:
+    app: catalogo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: catalogo
+  template:
+    metadata:
+      labels:
+        app: catalogo
+    spec:
+      containers:
+        - name: catalogo
+          image: python:3.14-alpine
+          command: ["python", "-u", "/app/servidor.py"]
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - name: codigo
+              mountPath: /app
+      volumes:
+        - name: codigo
+          configMap:
+            name: catalogo-codigo

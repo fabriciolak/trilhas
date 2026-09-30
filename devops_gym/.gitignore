@@ -1,0 +1,5 @@
+# Seu progresso (caixas e histórico) e os arquivos de trabalho dos tickets.
+# Quer sincronizar o progresso entre computadores pelo git? Apague a linha progresso/.
+progresso/
+oficina/
+__pycache__/

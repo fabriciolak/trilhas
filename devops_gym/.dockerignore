@@ -1,0 +1,5 @@
+progresso
+oficina
+**/__pycache__
+*.md
+!pool/**/*.md

@@ -1,0 +1,8 @@
+#!/bin/bash
+# Roda a cada boot do laboratório: executa os boot.sh dos tickets (montagens, arquivos
+# que o Docker sobrescreve ao ligar, como /etc/hosts, e processos que precisam estar vivos).
+for script in /usr/local/lib/lab/boot.d/*.sh; do
+  [ -e "$script" ] || continue
+  bash "$script" || echo "lab-inicio: falhou $script" >&2
+done
+exit 0

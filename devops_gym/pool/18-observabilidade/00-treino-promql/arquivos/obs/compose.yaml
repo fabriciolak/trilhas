@@ -1,0 +1,19 @@
+name: treino-obs
+
+services:
+  metricas:
+    image: python:3.14-alpine
+    command: ["python", "-u", "/app/metricas.py"]
+    volumes:
+      - ./metricas.py:/app/metricas.py:ro
+    ports:
+      - "18000:8000"
+
+  prometheus:
+    image: prom/prometheus:v3.13.4
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+    ports:
+      - "19191:9090"
+    volumes:
+      - ./prometheus:/etc/prometheus:ro

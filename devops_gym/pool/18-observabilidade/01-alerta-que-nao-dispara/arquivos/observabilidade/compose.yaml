@@ -1,0 +1,20 @@
+name: gym-obs
+
+services:
+  loja:
+    image: python:3.14-alpine
+    command: ["python", "-u", "/app/loja.py"]
+    volumes:
+      - ./loja.py:/app/loja.py:ro
+
+  prometheus:
+    image: prom/prometheus:v3.13.4
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --web.enable-lifecycle
+    ports:
+      - "19090:9090"
+    volumes:
+      # A pasta inteira, não arquivo por arquivo: muitos editores (e o sed -i) gravam um
+      # arquivo novo ao salvar, e a montagem de um arquivo só continuaria vendo o antigo.
+      - ./prometheus:/etc/prometheus:ro

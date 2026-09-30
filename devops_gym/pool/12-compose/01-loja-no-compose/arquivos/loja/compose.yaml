@@ -1,0 +1,27 @@
+name: gym-loja
+
+services:
+  web:
+    image: nginx:1.30-alpine
+    ports:
+      - "8282:8080"
+    volumes:
+      - ./web/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends-on:
+      - api
+
+  api:
+    build: ./api
+    environment:
+      REDIS_HOST: localhost
+      REDIS_PORT: "6379"
+    depends_on:
+      - cache
+
+  cache:
+    image: redis:8-alpinee
+    volumes:
+      dados-redis:/data
+
+volumes:
+  dados-redis:

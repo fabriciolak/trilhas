@@ -1,0 +1,10 @@
+#!/bin/sh
+# Atalho para o gym.py no Linux, macOS, WSL e Git Bash: ./gym [comando]
+dir=$(cd "$(dirname "$0")" && pwd)
+for py in python3 python; do
+  if command -v "$py" >/dev/null 2>&1; then
+    exec "$py" "$dir/gym.py" "$@"
+  fi
+done
+echo "Python 3.9+ não encontrado (veja AMBIENTE.md)." >&2
+exit 1

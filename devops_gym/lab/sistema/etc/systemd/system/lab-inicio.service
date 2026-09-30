@@ -1,0 +1,11 @@
+[Unit]
+Description=Inicializacao do laboratorio
+After=network.target nginx.service ssh.service cron.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/bin/bash /usr/local/sbin/lab-inicio
+
+[Install]
+WantedBy=multi-user.target
