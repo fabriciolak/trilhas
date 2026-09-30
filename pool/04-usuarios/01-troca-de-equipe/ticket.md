@@ -2,6 +2,9 @@
 mes: 2
 semana: 5
 palco: lab
+tipo: ticket
+nivel: 2
+conceitos: usermod -L, find -user, useradd, chown -R, userdel, arquivos órfãos, crontab
 ---
 # Troca de equipe
 

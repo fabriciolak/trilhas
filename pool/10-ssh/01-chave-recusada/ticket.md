@@ -2,6 +2,9 @@
 mes: 3
 semana: 12
 palco: lab
+tipo: ticket
+nivel: 2
+conceitos: authorized_keys, permissões do .ssh, sshd_config, AllowUsers, ssh -v
 ---
 # Chave recusada
 

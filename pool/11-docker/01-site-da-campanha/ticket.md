@@ -2,6 +2,9 @@
 mes: 4
 semana: 14
 palco: host
+tipo: ticket
+nivel: 1
+conceitos: docker run, portas, bind mount só leitura, --env-file, restart, exec, logs
 ---
 # Site da campanha
 

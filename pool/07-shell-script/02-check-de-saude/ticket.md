@@ -2,6 +2,9 @@
 mes: 2
 semana: 8
 palco: lab
+tipo: ticket
+nivel: 2
+conceitos: script do zero, funções, validação de argumentos, códigos de saída para monitoramento
 ---
 # Check de saúde
 

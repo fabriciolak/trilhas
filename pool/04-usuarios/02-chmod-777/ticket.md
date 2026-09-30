@@ -2,6 +2,9 @@
 mes: 2
 semana: 5
 palco: lab
+tipo: ticket
+nivel: 2
+conceitos: chmod octal e simbólico, chown -R, setgid, segredos, namei, sudo -u
 ---
 # chmod 777
 

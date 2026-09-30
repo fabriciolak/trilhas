@@ -2,6 +2,9 @@
 mes: 1
 semana: 2
 palco: lab
+tipo: ticket
+nivel: 2
+conceitos: find por data e dono, stat, arquivos ocultos, linha do tempo
 ---
 # Invasão de madrugada
 

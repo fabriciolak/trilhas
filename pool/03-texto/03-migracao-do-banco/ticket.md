@@ -2,6 +2,9 @@
 mes: 1
 semana: 4
 palco: lab
+tipo: ticket
+nivel: 2
+conceitos: regex, sed, awk, diff, trocas em massa com backup
 ---
 # Migração do banco
 

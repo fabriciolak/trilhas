@@ -2,6 +2,9 @@
 mes: 2
 semana: 7
 palco: lab
+tipo: ticket
+nivel: 2
+conceitos: apt, repositório quebrado, dpkg -S, usrmerge, apt-mark hold
 ---
 # Ferramenta sumida
 

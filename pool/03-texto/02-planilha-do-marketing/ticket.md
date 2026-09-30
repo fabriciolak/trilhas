@@ -2,6 +2,9 @@
 mes: 1
 semana: 3
 palco: lab
+tipo: ticket
+nivel: 2
+conceitos: CRLF, codificação, tr, cut, sort, xargs, od
 ---
 # Planilha do marketing
 

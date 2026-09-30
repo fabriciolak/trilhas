@@ -2,6 +2,9 @@
 mes: 3
 semana: 10
 palco: lab
+tipo: ticket
+nivel: 2
+conceitos: cron.d, campo de usuário, % no cron, permissão de execução, logs do cron
 ---
 # Cron que não roda
 

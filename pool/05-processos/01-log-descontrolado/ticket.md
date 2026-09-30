@@ -2,6 +2,9 @@
 mes: 2
 semana: 6
 palco: lab
+tipo: ticket
+nivel: 2
+conceitos: ps, pstree, kill, processo zumbi, jobs, fg, bg
 ---
 # Log descontrolado
 

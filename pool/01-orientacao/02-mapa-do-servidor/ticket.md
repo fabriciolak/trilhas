@@ -2,6 +2,9 @@
 mes: 1
 semana: 1
 palco: lab
+tipo: ticket
+nivel: 1
+conceitos: hierarquia de pastas (FHS), caminhos, ls, find, file, man, --help
 ---
 # Mapa do servidor
 

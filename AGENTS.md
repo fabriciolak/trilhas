@@ -1,10 +1,12 @@
 # AGENTS.md: devops_gym
 
-Guia para quem cria ou mantém tickets (você, ou um assistente de IA como o Claude
-Code) e para assistentes que ajudam alguém a treinar.
+Guia para quem cria ou mantém itens (treinos, tickets e chefes), seja você ou um
+assistente de IA como o Claude Code, e para assistentes que ajudam alguém a treinar.
 
 ## Se você é um assistente ajudando alguém a treinar
 
+- **Treino** (tem `## AULA`) é para aprender: explique à vontade, com exemplos
+  parecidos (não os do passo). **Ticket e chefe** são para aplicar: aí vale a regra abaixo.
 - **Não entregue a solução.** Quem pede ajuda num ticket quer destravar, não copiar.
   Dê dicas em degraus: (1) qual camada olhar, (2) qual tipo de comando, (3) o comando
   sem os argumentos. A solução completa só se a pessoa pedir de novo, explicitamente,
@@ -31,17 +33,37 @@ Code) e para assistentes que ajudam alguém a treinar.
   `tranquilo` sobe uma caixa.
 - Tudo em `devops_gym/` tem fim de linha LF (`.gitattributes`), menos `*.cmd` e `*.ps1`.
 
-## Anatomia de um ticket
+## O modelo pedagógico: treino → ticket → chefe
 
-`pool/<NN-tema>/<NN-cenario>/ticket.md`:
+Cada semana tem um **treino** (aprender), um ou dois **tickets** (aplicar) e cada mês
+fecha com um **chefe** (combinar). O `gym` ordena por mês, semana e tipo, então o treino
+sempre vem antes do ticket da mesma semana.
+
+| tipo | nível | o que é | regras |
+|---|---|---|---|
+| `treino` | 1 (às vezes 2) | `## AULA` com o conceito e exemplos, mais 5 a 10 passos pequenos | cada passo tem um entregável verificável; os exemplos da aula são parecidos, **não iguais** aos passos |
+| `ticket` | 2 (às vezes 3) | um incidente | sintomas, não comandos; pelo menos uma pegadinha realista |
+| `chefe` | 3 | vários problemas do mês num incidente só | problemas encadeados (um esconde o outro); usa tudo do mês e um pouco dos anteriores |
+
+## Anatomia de um item
+
+`pool/<NN-tema>/<NN-cenario>/ticket.md` (os treinos ficam em `00-treino-<assunto>`, os
+chefes em `pool/90-chefes/`):
 
 ```markdown
 ---
 mes: 3
 semana: 11
 palco: lab          # lab = dentro do laboratório; host = no Docker do computador
+tipo: ticket        # treino | ticket | chefe (padrão: ticket)
+nivel: 2            # 1 básico, 2 intermediário, 3 avançado (padrão: 2)
+conceitos: ss, portas, curl, proxy reverso   # separados por vírgula (a web e a IA usam)
 ---
 # Título curto
+
+## AULA
+(só nos treinos) O conceito, com exemplos que o aluno testa. Tabelas e blocos de código
+com 4 espaços de recuo (o terminal mostra o texto como está).
 
 ## TICKET
 O incidente, contado como o chamado chega: sintomas, contexto e a história da
@@ -77,8 +99,29 @@ Arquivos do palco `host`:
 | `solucao.md` | mostrado na tecla `s` (comandos para bash **e** PowerShell quando diferirem) |
 | `solucao.sh` | a mesma solução em bash, para o `lab/testar.py` |
 
-Os `.py` recebem prontos: `ok(msg)`, `falha(msg, dica)`, `checar(msg, condicao, dica)`,
-`docker(*args) -> (código, saída)`, `http(url) -> (status, corpo)` e `oficina` (Path).
+Os `.py` recebem prontos:
+
+| função | faz |
+|---|---|
+| `ok(msg)`, `falha(msg, dica)`, `checar(msg, condicao, dica)` | o placar |
+| `docker(*args) -> (código, saída)` | roda o Docker (ou o Podman) |
+| `http(url, timeout=5, metodo="GET", corpo=None, cabecalhos=None) -> (status, corpo)` | HTTP sem proxy |
+| `oficina` | a pasta do item (Path) |
+| `k3s_ligar() -> bool` e `k8s(*args, entrada=None) -> (código, saída)` | Kubernetes local (k3s no Docker, container `gym-k3s`) |
+| `rede_nuvem()` | cria a rede `gym-nuvem` (onde ficam o `gym-moto` e a AWS CLI) |
+| `terraform(pasta, *args) -> (código, saída)` | Terraform em container na pasta |
+
+### As ferramentas em container
+
+O aluno só instala o Docker. O resto roda em container, pelos subcomandos do `gym`:
+
+| comando | como |
+|---|---|
+| `gym k8s start/stop`, `gym kubectl` | `rancher/k3s` privilegiado (`gym-k3s`), com a oficina montada em `/oficina` e o Docker Hub via `mirror.gcr.io`; o `kubectl` roda com `docker exec` |
+| `gym terraform` | `hashicorp/terraform`, com a pasta atual em `/trabalho` e o `docker.sock` (provider `kreuzwerker/docker`) |
+| `gym aws` | `amazon/aws-cli` na rede `gym-nuvem`, apontada para `http://moto:5000` (o `gym-moto`, que o `preparar.py` do item sobe), com buckets por caminho |
+
+Para validar GitHub Actions, os itens rodam o `rhysd/actionlint` pelo `docker()`.
 
 ### A biblioteca dos verificar.sh
 
@@ -100,6 +143,31 @@ Armadilhas que já aconteceram:
 - `/etc/hosts` num container é um bind mount: `sed -i` falha; `cp` e `tee` funcionam.
 - No Ubuntu 24.04, `/bin` aponta para `/usr/bin` (usrmerge): `dpkg -S /usr/bin/ss` não
   acha o pacote, `dpkg -S '*/bin/ss'` acha.
+- Mensagem capturada em variável (`erro=$(...)`) pode ter aspas simples: não a coloque
+  dentro de `sh -c '...'`. Compare no próprio shell (`test -n "$erro"`) ou numa função.
+- `pgrep` dentro de `sh -c "..."` também acha o `sh` (a linha de comando dele tem o
+  padrão). Use `sem_processo` ou uma função do próprio verificador.
+- `ps -o ppid=` devolve o número com espaços na frente: `tr -d ' '` antes de usar.
+- Sem `sudo` (ou o grupo `adm`), o `journalctl` do aluno não mostra os serviços do sistema.
+- Datas relativas ("45 dias atrás") vão no `boot.sh`: a imagem é construída uma vez e
+  usada por meses.
+- Processo vivo no `boot.sh` roda em **todos** os itens do laboratório: nada de CPU a
+  100% (o do `plantao-de-sexta` trabalha em rajadas, ~20%).
+- Chefes podem usar o estado quebrado de itens anteriores do mesmo laboratório, mas a
+  solução não pode depender dele.
+
+Do lado do host:
+
+- Montar **um arquivo só** num container (`./alertas.yml:/etc/...`) prende o inode:
+  `sed -i` e muitos editores gravam um arquivo novo, e o container continua vendo o
+  antigo. Monte a pasta.
+- YAML: dois-pontos seguido de espaço dentro de um valor sem aspas (`run: echo "a: b"`)
+  quebra o arquivo. Use `run: |`.
+- O `actionlint` fora de um repositório Git precisa do caminho do workflow.
+- No k3s, o `Ready` do nó chega antes da serviceaccount `default`: o `k3s_ligar()` já
+  espera por ela.
+- `dpkg -i` com dependência faltando deixa o pacote pela metade, e o `apt` passa a recusar
+  tudo. Nas soluções, use `apt-get install ./arquivo.deb`.
 
 ## Regras de design
 
@@ -113,20 +181,21 @@ Armadilhas que já aconteceram:
   verifique isso também.
 - **Continuidade.** A empresa é a Pinguim Store; o administrador anterior é o Beto; a
   tech lead é a Carla. Nomes de serviço em português.
-- **Ticket isolado.** Um ticket não pode depender do estado de outro (crie o que
-  precisar, de forma idempotente).
+- **Item isolado.** Um item não pode depender do estado de outro (crie o que
+  precisar, de forma idempotente). Nomes, portas e namespaces próprios: nada de
+  reaproveitar os de outro item.
 - O verificador precisa **reprovar** o estado inicial e **aprovar** a solução.
 
-## Criando um ticket novo
+## Criando um item novo
 
-1. Crie a pasta e os arquivos acima.
+1. Crie a pasta e os arquivos acima (treino: com `## AULA`; chefe: em `pool/90-chefes/`).
 2. Teste de ponta a ponta:
 
    ```bash
    python3 lab/testar.py <parte-do-nome>
    ```
 
-   Para cada ticket, ele sobe um laboratório novo (ou uma oficina nova), confere que o
+   Para cada item, ele sobe um laboratório novo (ou uma oficina nova), confere que o
    verificador reprova, roda a solução e confere que o verificador aprova.
 3. Mapeie o ticket no [ROADMAP.md](ROADMAP.md) e, se usou conteúdo novo, no
    [CONTEUDOS.md](CONTEUDOS.md).
@@ -136,15 +205,15 @@ Armadilhas que já aconteceram:
 | Variável | Para quê |
 |---|---|
 | `GYM_BUILD_ARGS` | argumentos a mais no `docker build` do laboratório. Ex.: `--build-arg BASE=espelho.empresa/ubuntu:24.04` (a imagem base é o `ARG BASE` do Dockerfile) ou `--network host` |
-| `GYM_RUN_ARGS` | argumentos a mais no `docker run` do laboratório. Ex.: `--network host`, para o ticket de pacotes atrás de um proxy local |
+| `GYM_RUN_ARGS` | argumentos a mais no `docker run` do laboratório. Ex.: `--network host`, para os itens de pacotes atrás de um proxy local |
+| `GYM_K3S_ARGS` | argumentos a mais no `docker run` do k3s. Ex.: montar o certificado de um proxy corporativo em `/etc/ssl/certs/ca-certificates.crt` |
+| `GYM_TF_ARGS` | argumentos a mais no container do Terraform. Ex.: um espelho de providers (`-v espelho:/mirror -e TF_CLI_CONFIG_FILE=...`) |
 | `NO_COLOR` | desliga as cores |
 
-## Ideias para próximos tickets
+## Ideias para próximos itens
 
-- **Mês 3, gincana júnior:** um servidor com vários problemas ao mesmo tempo (disco
-  cheio, processo comendo CPU, serviço caído, permissão errada), para treinar triagem.
 - **Logs:** um `logrotate` quebrado deixando `/var/log` cheio; `journalctl --vacuum`.
 - **Redes:** firewall com `nftables` bloqueando uma porta; MTU; um certificado TLS vencido.
-- **Kubernetes (host):** um cluster `kind` com um Deployment em CrashLoopBackOff, uma
-  probe errada e um Service sem endpoints.
-- **CI:** um workflow do GitHub Actions quebrado, validado localmente com `actionlint`.
+- **Kubernetes:** Ingress, HPA (ligando o metrics-server do k3s), RBAC e Helm.
+- **Observabilidade:** Grafana com um painel como código; logs com Loki.
+- **Segurança:** varredura de imagem (Trivy) no pipeline; segredos vazados no histórico do Git.

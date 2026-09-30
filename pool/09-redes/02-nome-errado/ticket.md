@@ -2,6 +2,9 @@
 mes: 3
 semana: 11
 palco: lab
+tipo: ticket
+nivel: 2
+conceitos: DNS, /etc/hosts, getent, dig, resolução de nomes
 ---
 # Nome errado
 

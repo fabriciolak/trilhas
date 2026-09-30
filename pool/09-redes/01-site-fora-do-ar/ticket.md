@@ -2,6 +2,9 @@
 mes: 3
 semana: 11
 palco: lab
+tipo: ticket
+nivel: 2
+conceitos: nginx -t, proxy reverso, 502, ss, logs de erro, reload
 ---
 # Site fora do ar
 

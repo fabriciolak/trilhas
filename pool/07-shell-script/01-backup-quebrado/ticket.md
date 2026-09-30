@@ -2,6 +2,9 @@
 mes: 2
 semana: 8
 palco: lab
+tipo: ticket
+nivel: 2
+conceitos: shebang, permissão de execução, aspas, argumentos, código de saída, stderr
 ---
 # Backup quebrado
 

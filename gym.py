@@ -53,7 +53,7 @@ MESES = {
     2: "Linux: usuários, processos, pacotes e shell script",
     3: "Serviços, redes e SSH",
     4: "Containers: Docker e Compose",
-    5: "Automação: Ansible, CI/CD e Terraform",
+    5: "Automação e nuvem: CI/CD, Ansible, Terraform e AWS",
     6: "Kubernetes, observabilidade e projeto final",
 }
 ABAS = {"a": "AULA", "t": "TICKET", "c": "COMANDOS", "p": "PERGUNTAS", "e": "ESTUDE"}
@@ -311,7 +311,10 @@ def listar(tickets: list[Ticket]) -> None:
             mes = t.mes
             print(f"\n{N}Mês {mes} · {MESES.get(mes, '')}{R}")
         onde = "" if t.palco == "lab" else f" {D}[seu computador]{R}"
-        print(f"  {D}sem {t.semana:>2}  {t.tipo:<6} {'•' * t.nivel:<3}{R} {t.nome:<26} {t.titulo:<30} "
+        titulo = t.titulo.removeprefix("Treino: ")
+        titulo = titulo[:1].upper() + titulo[1:]
+        titulo = titulo if len(titulo) <= 34 else titulo[:33] + "…"
+        print(f"  {D}sem {t.semana:>2}  {t.tipo:<6} {'•' * t.nivel:<3}{R} {t.nome:<24} {titulo:<34} "
               f"{situacao(t, ledger)}{onde}")
     feitos = sum(1 for t in tickets if t.chave in ledger)
     print(f"\n{feitos} de {len(tickets)} itens já treinados. Abra um com: gym <nome>")

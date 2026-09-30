@@ -2,6 +2,9 @@
 mes: 4
 semana: 15
 palco: host
+tipo: ticket
+nivel: 2
+conceitos: código de saída, logs, shebang e alpine, variável de configuração, restart
 ---
 # Container que morre
 

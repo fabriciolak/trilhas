@@ -2,6 +2,9 @@
 mes: 1
 semana: 3
 palco: lab
+tipo: ticket
+nivel: 2
+conceitos: tail, grep, cut, awk, sort, uniq -c, ranking em pipe
 ---
 # Log em chamas
 

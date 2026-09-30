@@ -2,6 +2,9 @@
 mes: 3
 semana: 9
 palco: lab
+tipo: ticket
+nivel: 2
+conceitos: systemctl, journalctl, unit, usuário de serviço, permissões, enable
 ---
 # API de estoque
 

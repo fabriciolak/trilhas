@@ -2,6 +2,9 @@
 mes: 4
 semana: 16
 palco: host
+tipo: ticket
+nivel: 2
+conceitos: camadas, multi-stage, .dockerignore, usuário não root, tamanho de imagem
 ---
 # Imagem gigante
 

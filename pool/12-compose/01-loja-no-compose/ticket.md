@@ -2,6 +2,9 @@
 mes: 4
 semana: 17
 palco: host
+tipo: ticket
+nivel: 2
+conceitos: compose config, nome do serviço como DNS, portas, volumes nomeados
 ---
 # Loja no Compose
 

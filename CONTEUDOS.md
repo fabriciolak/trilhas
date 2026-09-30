@@ -1,6 +1,6 @@
 # Conteúdos em português
 
-Curadoria para o [roadmap de 6 meses](ROADMAP.md). Tudo é **gratuito**, salvo quando
+Curadoria para o [roadmap de 6 meses](ROADMAP.md). As aulas dos treinos do gym (tecla `a`) são o ponto de partida de cada semana; os conteúdos abaixo aprofundam. Tudo é **gratuito**, salvo quando
 indicado. Conferido em **setembro de 2026**. Quando o material é antigo, a data aparece
 ao lado, com o que ainda vale e o que mudou.
 
@@ -86,7 +86,7 @@ português à altura)
 | 📖 | [Descomplicando o Ansible (LINUXtips)](https://github.com/badtuxx/descomplicando-ansible-2020) | Material do treinamento de Ansible, em português. | 2020–2022; a sintaxe `ansible.builtin.*` é a atual |
 | 📖 | [Ansible: Getting started](https://docs.ansible.com/ansible/latest/getting_started/index.html) 🌎 | A documentação oficial é o melhor lugar para módulos (`ansible-doc` no terminal). | Oficial |
 | 🎬 | [Google Cloud: Getting Started with Terraform (versão em português)](https://www.coursera.org/learn/getting-started-with-terraform-for-google-cloud---portugus) | Curso introdutório de Terraform em português, cerca de 6 h. No Coursera, em geral dá para assistir de graça no modo ouvinte (a opção aparece na inscrição). | Oficial Google Cloud |
-| 🧪 | GIRUS, labs `terraform_fundamentos`, `terraform_estado-remoto`, `terraform_modulos`, `terraform_aws_infraestrutura` e `aws_localstack_terraform` | Terraform na prática, sem conta de nuvem (usa LocalStack). | v0.5 (mai/2025) |
+| 🧪 | GIRUS, labs `terraform_fundamentos`, `terraform_estado-remoto`, `terraform_modulos`, `terraform_aws_infraestrutura` e `aws_localstack_terraform` | Terraform na prática. Os labs de AWS usam o LocalStack: veja o aviso na seção de nuvem. | v0.5 (mai/2025) |
 | 📖 | [OpenTofu](https://opentofu.org/docs/) 🌎 | Alternativa aberta e compatível com o Terraform. Os comandos são os mesmos (`tofu` em vez de `terraform`). | Ativo |
 
 ## Nuvem
@@ -94,11 +94,18 @@ português à altura)
 | | Conteúdo | Por que | Estado |
 |---|---|---|---|
 | 🎬 | [AWS Cloud Practitioner Essentials](https://aws.amazon.com/pt/training/course-descriptions/cloud-practitioner-essentials/) (AWS Skill Builder) | Curso oficial, totalmente em português com instrutores brasileiros, cerca de 6 h. Prepara para a certificação de entrada da AWS. | Oficial |
-| 🧪 | GIRUS, labs `aws_s3-iam`, `aws_ec2-vpc`, `aws_lambda_serverless`, `aws_dynamodb_nosql`, `aws_rds-elasticache` | Serviços da AWS simulados localmente (LocalStack): prática **sem risco de conta alta**. | v0.5 (mai/2025) |
+| 🧪 | `gym aws` (no próprio gym) com o [Moto](https://github.com/getmoto/moto) 🌎 | A AWS CLI de verdade contra uma conta **simulada** no seu Docker (S3, IAM, EC2...). Sem cadastro, sem custo. É o que os itens `treino-aws` e `bucket-exposto` usam. | Moto 5.x, Apache 2.0 |
+| 🧪 | GIRUS, labs `aws_s3-iam`, `aws_ec2-vpc`, `aws_lambda_serverless`, `aws_dynamodb_nosql`, `aws_rds-elasticache` | Serviços da AWS simulados localmente com o LocalStack. | v0.5 (mai/2025); **veja o aviso abaixo** |
 
+> **LocalStack mudou em 2026:** a edição Community (a imagem gratuita, sem conta) foi
+> encerrada em 23/03/2026. A imagem atual exige conta e token, e o plano gratuito
+> (Hobby) é só para uso pessoal e não comercial. Os labs de AWS do GIRUS dependem dele:
+> confira se ainda funcionam do seu lado antes de contar com eles. No gym, a AWS
+> simulada é o Moto, que continua aberto e sem cadastro.
+>
 > **Cuidado com custo na nuvem de verdade:** crie alertas de orçamento no primeiro dia,
-> use só recursos do nível gratuito e apague tudo ao terminar. Prefira o LocalStack
-> (via GIRUS) enquanto estiver aprendendo.
+> use só recursos do nível gratuito e apague tudo ao terminar. Enquanto estiver
+> aprendendo, prefira a conta simulada (`gym aws`).
 
 ## Kubernetes
 
@@ -107,7 +114,8 @@ português à altura)
 | 📖🎬 | [Descomplicando o Kubernetes](https://github.com/badtuxx/DescomplicandoKubernetes) (LINUXtips) | Dezesseis "dias" do básico ao avançado: Pods, Deployments, Services, Ingress, volumes, RBAC, HPA, Helm. Em português, gratuito. | Atualizado até 2024; confira versões de ferramentas |
 | 📖 | [Documentação do Kubernetes em português](https://kubernetes.io/pt-br/docs/) | Conceitos e tutoriais oficiais traduzidos pela comunidade. | Oficial |
 | 🧪 | GIRUS, labs `kubernetes_fundamentos`, `kubernetes_deployments`, `kubernetes_services-networking`, `kubernetes_configmaps-secrets`, `kubernetes_cronjobs`, `kubernetes_exploracao-recursos` | Kubernetes de verdade (kind) com tarefas validadas. | v0.5 (mai/2025) |
-| 📖 | [kind](https://kind.sigs.k8s.io/) 🌎 | Kubernetes dentro do Docker, na sua máquina. É o que você usa no mês 6. | Oficial |
+| 📖 | [k3s](https://docs.k3s.io/) 🌎 | O Kubernetes leve que o `gym k8s start` sobe no seu Docker (mês 6). É um Kubernetes certificado: o que você aprende nele vale para qualquer cluster. | Oficial (CNCF) |
+| 📖 | [kind](https://kind.sigs.k8s.io/) 🌎 | Outra forma de rodar Kubernetes no Docker, com vários nós. Boa para o projeto final. | Oficial |
 
 ## Observabilidade
 

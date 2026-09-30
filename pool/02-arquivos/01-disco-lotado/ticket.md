@@ -2,6 +2,9 @@
 mes: 1
 semana: 2
 palco: lab
+tipo: ticket
+nivel: 2
+conceitos: df, du, find por tamanho, arquivo esparso, file, apagar em massa com segurança
 ---
 # Disco lotado
 

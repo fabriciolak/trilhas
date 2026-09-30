@@ -2,6 +2,9 @@
 mes: 5
 semana: 19
 palco: lab
+tipo: ticket
+nivel: 2
+conceitos: inventário, sintaxe YAML, módulos, handlers, idempotência
 ---
 # Playbook quebrado
 

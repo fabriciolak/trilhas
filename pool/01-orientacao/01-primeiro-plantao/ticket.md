@@ -2,6 +2,9 @@
 mes: 1
 semana: 1
 palco: lab
+tipo: ticket
+nivel: 1
+conceitos: quem sou eu, id, grupos, hostname, uname, uptime, memória, CPU, variáveis de ambiente
 ---
 # Primeiro plantão
 

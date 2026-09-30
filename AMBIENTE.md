@@ -4,9 +4,14 @@ O gym precisa de três coisas: **Git**, **Python 3.9+** e **Docker**. O laborat�
 si é um Ubuntu 24.04 dentro do Docker, então funciona igual no Windows, no Linux e
 no macOS. Nada do que você fizer lá dentro mexe no seu computador.
 
-Requisitos da máquina: 64 bits, **8 GB de RAM** (4 GB funcionam, apertado), **10 GB
-livres** em disco e virtualização ligada na BIOS/UEFI (no Windows e no macOS o Docker
-roda numa máquina virtual leve).
+Requisitos da máquina: 64 bits, **8 GB de RAM** (4 GB funcionam até o mês 5, apertado),
+**20 GB livres** em disco e virtualização ligada na BIOS/UEFI (no Windows e no macOS o
+Docker roda numa máquina virtual leve). No Docker Desktop, deixe pelo menos **4 GB** de
+memória para ele (*Settings → Resources*): o Kubernetes do mês 6 precisa.
+
+Kubernetes, Terraform, AWS CLI, actionlint e Prometheus **não** precisam ser instalados:
+o gym roda cada um num container (`gym kubectl`, `gym terraform`, `gym aws`...) e baixa
+as imagens na primeira vez que um item usa.
 
 ## Windows 10/11 (recomendado: WSL 2 + Docker Desktop)
 
@@ -106,6 +111,23 @@ $ ./gym doctor
 O primeiro `gym lab` baixa o Ubuntu e constrói o laboratório: alguns minutos e cerca
 de 500 MB. Os seguintes levam segundos.
 
+## Chamando o gym de qualquer pasta
+
+Os itens do seu computador pedem comandos como `gym kubectl` e `gym terraform` de dentro
+da pasta da oficina. Deixe o `gym` no PATH:
+
+```bash
+# Linux, macOS e WSL: no fim do ~/.bashrc (ou ~/.zshrc), depois abra um terminal novo
+export PATH="$HOME/labs/devops_gym:$PATH"
+alias k='gym kubectl'
+```
+
+```powershell
+# Windows (PowerShell): no seu perfil (notepad $PROFILE), depois abra um PowerShell novo
+function gym { python "$HOME\labs\devops_gym\gym.py" @args }
+function k { gym kubectl @args }
+```
+
 ## Problemas comuns
 
 | Sintoma | Causa e saída |
@@ -115,9 +137,11 @@ de 500 MB. Os seguintes levam segundos.
 | `the input device is not a TTY` | Terminal que não é interativo de verdade (Git Bash/mintty no Windows). Use Windows Terminal, PowerShell ou o terminal do WSL. |
 | O laboratório "não terminou de ligar" | O systemd do container não subiu. Veja `docker logs devops-gym-lab`. Atualize o Docker Desktop ou o Docker Engine (é preciso suporte a cgroup v2) e tente `./gym lab --new`. |
 | `\r: command not found` ou `bad interpreter` | Arquivos com fim de linha do Windows. O `.gitattributes` evita isso; se você copiou arquivos à mão, clone de novo. No Windows, prefira clonar dentro do WSL. |
-| A porta 8181, 8282 ou 18383 já está em uso | Algum programa seu usa a porta. Veja com `docker ps` ou pare o que estiver usando. |
+| Uma porta já está em uso (8181, 8282, 8383, 8484, 8585...) | Algum programa seu, ou o container de um item antigo, usa a porta. Veja com `docker ps` e apague o container velho (`docker rm -f nome`), ou recomece o item com `r`. |
+| `gym k8s start` não termina | O k3s precisa de um container privilegiado e de memória. Veja `docker logs gym-k3s`. No Docker Desktop, aumente a memória. `gym k8s stop` e tente de novo. |
+| Pouco espaço em disco | `docker system df` mostra o uso; `docker image prune` e `docker volume prune` limpam o que nenhum container usa. |
 | Proxy de empresa | Configure o proxy no Docker (Docker Desktop: *Settings → Resources → Proxies*; Linux: `~/.docker/config.json`). Argumentos extras para o build e o run: variáveis `GYM_BUILD_ARGS` e `GYM_RUN_ARGS` (veja [AGENTS.md](AGENTS.md)). |
-| O ticket `ferramenta-sumida` não baixa pacotes | Ele precisa de internet dentro do laboratório. Confira se o seu Docker tem saída para a internet. |
+| O ticket `ferramenta-sumida` ou o chefe `plantao-de-sexta` não baixa pacotes | Eles precisam de internet dentro do laboratório. Confira se o seu Docker tem saída para a internet. |
 
 ## Seu progresso entre computadores
 
