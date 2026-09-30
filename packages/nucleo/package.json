@@ -1,0 +1,25 @@
+{
+  "name": "@trilhas/nucleo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "O coração das trilhas: esquema, repetição espaçada, validador, provedores de IA e prompts.",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./node": "./src/node/index.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.130.0",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.0",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.3"
+  }
+}

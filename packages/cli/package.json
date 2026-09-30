@@ -1,0 +1,25 @@
+{
+  "name": "@trilhas/cli",
+  "version": "0.1.0",
+  "private": true,
+  "description": "trilhas validar | importar-gym: valida trilhas (inicial reprova, solução aprova) e importa o devops_gym.",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "trilhas": "./dist/trilhas.js"
+  },
+  "scripts": {
+    "build": "esbuild src/main.ts --bundle --platform=node --format=esm --target=node20 --outfile=dist/trilhas.js --banner:js=\"#!/usr/bin/env node\"",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@trilhas/nucleo": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.0",
+    "esbuild": "^0.25.0",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.3"
+  }
+}
