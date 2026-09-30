@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import contextlib
 import io
+import os
 import subprocess
 import sys
 import time
@@ -46,8 +47,10 @@ def verificar_host(t: gym.Ticket) -> tuple[int, str]:
 
 
 def solucao_host(t: gym.Ticket) -> tuple[int, str]:
+    # As soluções chamam "gym kubectl", "gym terraform"...: o gym precisa estar no PATH.
+    env = {**os.environ, "PATH": f"{gym.RAIZ}{os.pathsep}{os.environ.get('PATH', '')}"}
     r = subprocess.run(["bash", str(t.dir / "solucao.sh")], cwd=gym.oficina_de(t),
-                       capture_output=True, text=True)
+                       capture_output=True, text=True, env=env)
     return r.returncode, r.stdout + r.stderr
 
 

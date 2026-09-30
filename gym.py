@@ -2,16 +2,21 @@
 """gym: treine Linux e DevOps resolvendo incidentes num laboratório descartável.
 
 Uso:
-  gym                    treino de hoje: revisões que venceram + o próximo ticket novo
-  gym <ticket>           abre um ticket (ex.: gym log-em-chamas)
-  gym list               todos os tickets, na ordem do roadmap, com o seu progresso
+  gym                    treino de hoje: revisões que venceram + o próximo item novo
+  gym <ticket>           abre um treino ou ticket (ex.: gym log-em-chamas)
+  gym list               tudo, na ordem do roadmap, com o seu progresso
   gym lab [--new]        entra no laboratório (liga se preciso; --new recria do zero)
   gym check [ticket]     confere a sua solução (sem ticket: o último aberto)
   gym stop               desliga o laboratório
   gym doctor             confere se este computador está pronto (Python e Docker)
 
+Ferramentas em container (só precisam do Docker):
+  gym kubectl <args>     kubectl no Kubernetes local (k3s); gym k8s stop desliga o cluster
+  gym terraform <args>   Terraform na pasta atual, com acesso ao seu Docker
+  gym aws <args>         AWS CLI apontada para a AWS simulada (Moto)
+
 Dentro de um ticket:
-  t ticket  c comandos  p perguntas  e estude  v verificar  s solução  x dar nota  q voltar
+  a aula  t ticket  c comandos  p perguntas  e estude  v verificar  s solução  x dar nota  q voltar
 """
 
 from __future__ import annotations
@@ -51,7 +56,26 @@ MESES = {
     5: "Automação: Ansible, CI/CD e Terraform",
     6: "Kubernetes, observabilidade e projeto final",
 }
-ABAS = {"t": "TICKET", "c": "COMANDOS", "p": "PERGUNTAS", "e": "ESTUDE"}
+ABAS = {"a": "AULA", "t": "TICKET", "c": "COMANDOS", "p": "PERGUNTAS", "e": "ESTUDE"}
+# Em cada semana: primeiro o treino (aprender), depois os tickets (aplicar), e o chefe
+# (vários problemas ao mesmo tempo) fecha o mês.
+TIPOS = {"treino": 0, "ticket": 1, "chefe": 2}
+NIVEIS = {1: "básico", 2: "intermediário", 3: "avançado"}
+
+# Ferramentas que rodam em container, para ninguém precisar instalar nada além do Docker.
+K3S = "gym-k3s"
+IMAGEM_K3S = "rancher/k3s:v1.36.5-k3s1"
+IMAGEM_TERRAFORM = "hashicorp/terraform:1.16"
+IMAGEM_AWS = "amazon/aws-cli:2.37.6"
+REDE_NUVEM = "gym-nuvem"
+# O k3s baixa as imagens do cluster pelo espelho do Google primeiro: o Docker Hub limita
+# downloads anônimos, e um cluster novo baixa várias imagens de uma vez.
+REGISTROS_K3S = """mirrors:
+  docker.io:
+    endpoint:
+      - "https://mirror.gcr.io"
+      - "https://registry-1.docker.io"
+"""
 
 
 # ---------------------------------------------------------------- terminal
@@ -140,12 +164,19 @@ class Ticket:
         self.mes = int(meta.get("mes", 0))
         self.semana = int(meta.get("semana", 0))
         self.palco = meta.get("palco", "lab")
+        self.tipo = meta.get("tipo", "ticket")
+        self.nivel = int(meta.get("nivel", 2))
+        self.conceitos = [c.strip() for c in meta.get("conceitos", "").split(",") if c.strip()]
         self.titulo = next((l[2:].strip() for l in corpo.splitlines() if l.startswith("# ")), self.nome)
         self.secoes = ler_secoes(corpo)
 
     @property
     def onde(self) -> str:
         return "laboratório" if self.palco == "lab" else "seu computador (Docker)"
+
+    @property
+    def rotulo(self) -> str:
+        return f"{self.tipo} · {NIVEIS.get(self.nivel, self.nivel)}"
 
 
 def ler_meta(texto: str) -> tuple[dict[str, str], str]:
@@ -175,7 +206,7 @@ def ler_secoes(texto: str) -> dict[str, str]:
 
 def carregar() -> list[Ticket]:
     tickets = [Ticket(a) for a in POOL.glob("*/*/ticket.md")]
-    return sorted(tickets, key=lambda t: (t.mes, t.semana, t.chave))
+    return sorted(tickets, key=lambda t: (t.mes, t.semana, TIPOS.get(t.tipo, 1), t.chave))
 
 
 def achar(tickets: list[Ticket], texto: str) -> Ticket | None:
@@ -253,12 +284,12 @@ def treino(tickets: list[Ticket]) -> int:
         if revisoes:
             print(f"{N}Revisões{R}")
             for t in revisoes:
-                print(f"  {C}{n:>2}{R}  {t.titulo:<32} {D}{t.chave}  caixa {ledger[t.chave][0]}{R}")
+                print(f"  {C}{n:>2}{R}  {t.titulo:<32} {D}{t.rotulo:<22} caixa {ledger[t.chave][0]}{R}")
                 n += 1
         if novo:
-            print(f"{N}Próximo ticket novo{R}")
-            print(f"  {C}{n:>2}{R}  {novo.titulo:<32} {D}{novo.chave}  mês {novo.mes}, semana {novo.semana}{R}")
-        print(f"\n  {C} l{R}  todos os tickets    {C}0{R}  sair")
+            print(f"{N}Próximo item novo{R}")
+            print(f"  {C}{n:>2}{R}  {novo.titulo:<32} {D}{novo.rotulo:<22} mês {novo.mes}, semana {novo.semana}{R}")
+        print(f"\n  {C} l{R}  ver tudo    {C}0{R}  sair")
         try:
             resp = input("\n> ").strip().lower()
         except EOFError:
@@ -280,16 +311,22 @@ def listar(tickets: list[Ticket]) -> None:
             mes = t.mes
             print(f"\n{N}Mês {mes} · {MESES.get(mes, '')}{R}")
         onde = "" if t.palco == "lab" else f" {D}[seu computador]{R}"
-        print(f"  {D}sem {t.semana:>2}{R}  {t.nome:<26} {t.titulo:<30} {situacao(t, ledger)}{onde}")
+        print(f"  {D}sem {t.semana:>2}  {t.tipo:<6} {'•' * t.nivel:<3}{R} {t.nome:<26} {t.titulo:<30} "
+              f"{situacao(t, ledger)}{onde}")
     feitos = sum(1 for t in tickets if t.chave in ledger)
-    print(f"\n{feitos} de {len(tickets)} tickets já treinados. Abra um com: gym <nome>")
+    print(f"\n{feitos} de {len(tickets)} itens já treinados. Abra um com: gym <nome>")
+    print(f"{D}treino = aprender passo a passo · ticket = incidente · chefe = vários problemas juntos; "
+          f"• básico, •• intermediário, ••• avançado{R}")
 
 
 def cabecalho(t: Ticket, aba: str) -> None:
     limpar()
-    print(f"{N}{t.titulo}{R}  {D}{t.chave} · mês {t.mes}, semana {t.semana} · onde: {t.onde}{R}")
+    print(f"{N}{t.titulo}{R}  {D}{t.rotulo} · mês {t.mes}, semana {t.semana} · onde: {t.onde}{R}")
     print(f"{D}{'─' * 72}{R}\n")
-    if aba == "t":
+    if aba == "a":
+        print(f"{N}Aula{R} {D}(leia com o laboratório aberto e teste cada exemplo){R}\n")
+        print(t.secoes.get("AULA", "Este item não tem aula: é um incidente. Veja [e]stude."))
+    elif aba == "t":
         print(t.secoes.get("TICKET", "(sem texto)"))
         print()
         if t.palco == "lab":
@@ -310,6 +347,8 @@ def cabecalho(t: Ticket, aba: str) -> None:
         print(t.secoes.get("ESTUDE", "Veja CONTEUDOS.md."))
     rotulos = [("t", "ticket"), ("c", "comandos"), ("p", "perguntas"), ("e", "estude"),
                ("v", "verificar"), ("s", "solução"), ("x", "dar nota"), ("q", "voltar")]
+    if "AULA" in t.secoes:
+        rotulos.insert(0, ("a", "aula"))
     if t.palco != "lab":
         rotulos.insert(6, ("r", "recomeçar"))
     partes = [f"{C}{N}[{k}]{nome}{R}" if k == aba else f"{D}[{k}]{nome}{R}" for k, nome in rotulos]
@@ -321,7 +360,7 @@ def abrir(t: Ticket) -> None:
     ULTIMO.write_text(t.chave, encoding="utf-8")
     if t.palco != "lab":
         preparar_oficina(t)
-    aba = "t"
+    aba = "a" if "AULA" in t.secoes else "t"
     while True:
         cabecalho(t, aba)
         k = tecla()
@@ -505,6 +544,133 @@ def comando_stop() -> int:
     return 0
 
 
+# ---------------------------------------------------------------- ferramentas em container
+
+def tty_args() -> list[str]:
+    return ["-t"] if sys.stdin.isatty() and sys.stdout.isatty() else []
+
+
+def pasta_na_oficina() -> str | None:
+    """A pasta atual como o cluster a enxerga (/oficina/...), se ela estiver na oficina."""
+    try:
+        rel = Path.cwd().resolve().relative_to(OFICINA.resolve())
+    except ValueError:
+        return None
+    return "/oficina/" + rel.as_posix() if rel.parts else "/oficina"
+
+
+def k3s_ligado(m: str) -> bool:
+    r = subprocess.run([m, "inspect", "-f", "{{.State.Running}}", K3S], capture_output=True, text=True)
+    return r.returncode == 0 and r.stdout.strip() == "true"
+
+
+def k3s_ligar(m: str) -> bool:
+    """Um Kubernetes de verdade (k3s) dentro de um container, com a oficina montada em /oficina."""
+    if k3s_ligado(m):
+        return True
+    print(f"{N}==> Ligando o Kubernetes local (k3s){R} {D}(a primeira vez baixa a imagem; leva 1 a 2 minutos){R}")
+    subprocess.run([m, "rm", "-f", K3S], capture_output=True)
+    OFICINA.mkdir(exist_ok=True)
+    registros = OFICINA / ".k3s-registries.yaml"
+    registros.write_text(REGISTROS_K3S, encoding="utf-8")
+    cmd = [m, "run", "-d", "--name", K3S, "--hostname", "gym-k8s", "--privileged", "--label", "devops-gym=k3s",
+           "-v", f"{OFICINA}:/oficina", "-v", f"{registros}:/etc/rancher/k3s/registries.yaml:ro",
+           *extras("GYM_K3S_ARGS"), IMAGEM_K3S, "server",
+           "--disable=traefik,metrics-server,servicelb", "--kubelet-arg=fail-cgroupv1=false"]
+    r = subprocess.run(cmd, capture_output=True, text=True)
+    if r.returncode != 0:
+        print(f"{V}Não consegui ligar o k3s:{R} {r.stderr.strip()}", file=sys.stderr)
+        return False
+    limite = time.monotonic() + 240
+    while time.monotonic() < limite:  # pronto = o namespace default já tem a conta de serviço
+        if subprocess.run([m, "exec", K3S, "kubectl", "get", "serviceaccount", "default"],
+                          capture_output=True).returncode == 0:
+            return True
+        time.sleep(2)
+    print(f"{V}O k3s não ficou pronto.{R} Veja: {m} logs {K3S}", file=sys.stderr)
+    return False
+
+
+def kubectl(m: str, args: list[str], entrada: bytes | None = None, capturar: bool = True,
+            pasta: str | None = None) -> subprocess.CompletedProcess:
+    cmd = [m, "exec", "-i", *([] if capturar or entrada is not None else tty_args()),
+           *(["-w", pasta] if pasta else []), K3S, "kubectl", *args]
+    return subprocess.run(cmd, input=entrada, capture_output=capturar)
+
+
+def comando_kubectl(args: list[str]) -> int:
+    m = motor_pronto()
+    if m is None or not k3s_ligar(m):
+        return 2
+    pasta = pasta_na_oficina()
+    if pasta is None and any(a in ("-f", "--filename", "-k") or a.startswith("--filename=") for a in args):
+        print(f"{Y}Arquivos só são vistos pelo cluster dentro da oficina{R} ({OFICINA}). "
+              "Rode de lá, ou use: gym kubectl apply -f - < arquivo.yaml", file=sys.stderr)
+    return kubectl(m, args, capturar=False, pasta=pasta).returncode
+
+
+def comando_k8s(args: list[str]) -> int:
+    m = motor_pronto()
+    if m is None:
+        return 2
+    acao = args[0] if args else "status"
+    if acao == "stop":
+        subprocess.run([m, "rm", "-f", K3S], capture_output=True)
+        print("Kubernetes local desligado e apagado.")
+        return 0
+    if acao == "start":
+        return 0 if k3s_ligar(m) else 1
+    print(f"Kubernetes local: {'ligado' if k3s_ligado(m) else 'desligado'} ({K3S}). "
+          "Use: gym k8s start | stop, e gym kubectl <args>")
+    return 0
+
+
+def terraform_cmd(m: str, pasta: Path, args: list[str], tty: bool = False) -> list[str]:
+    """Terraform em container: enxerga a pasta e o Docker do computador (provider docker)."""
+    usuario: list[str] = []
+    if sys.platform.startswith("linux"):  # os arquivos criados ficam seus, não do root
+        usuario = ["--user", f"{os.getuid()}:{os.getgid()}", "-e", "HOME=/tmp"]
+        try:
+            usuario += ["--group-add", str(os.stat("/var/run/docker.sock").st_gid)]
+        except OSError:
+            pass
+    return [m, "run", "--rm", "-i", *(tty_args() if tty else []), *usuario,
+            "-v", f"{pasta}:/trabalho", "-w", "/trabalho",
+            "-v", "/var/run/docker.sock:/var/run/docker.sock", "-e", "CHECKPOINT_DISABLE=1",
+            *extras("GYM_TF_ARGS"), IMAGEM_TERRAFORM, *args]
+
+
+def comando_terraform(args: list[str]) -> int:
+    m = motor_pronto()
+    if m is None:
+        return 2
+    return subprocess.call(terraform_cmd(m, Path.cwd(), args, tty=True))
+
+
+def rede_nuvem(m: str) -> None:
+    if subprocess.run([m, "network", "inspect", REDE_NUVEM], capture_output=True).returncode != 0:
+        subprocess.run([m, "network", "create", REDE_NUVEM], capture_output=True)
+
+
+def comando_aws(args: list[str]) -> int:
+    """AWS CLI em container, apontada para a AWS simulada (Moto) do ticket, nunca para a real."""
+    m = motor_pronto()
+    if m is None:
+        return 2
+    rede_nuvem(m)
+    # Buckets por caminho (moto:5000/bucket): o Moto roda num host local, sem o subdomínio
+    # por bucket que a AWS de verdade usa.
+    OFICINA.mkdir(exist_ok=True)
+    config = OFICINA / ".aws-config"
+    config.write_text("[default]\ns3 =\n    addressing_style = path\n", encoding="utf-8")
+    cmd = [m, "run", "--rm", "-i", *tty_args(), "--network", REDE_NUVEM,
+           "-e", "AWS_ENDPOINT_URL=http://moto:5000", "-e", "AWS_ACCESS_KEY_ID=teste",
+           "-e", "AWS_SECRET_ACCESS_KEY=teste", "-e", "AWS_DEFAULT_REGION=us-east-1",
+           "-e", "AWS_PAGER=", "-v", f"{config}:/root/.aws/config:ro",
+           "-v", f"{Path.cwd()}:/aws", IMAGEM_AWS, *args]
+    return subprocess.call(cmd)
+
+
 # ---------------------------------------------------------------- verificação
 
 def verificar(t: Ticket) -> int:
@@ -559,17 +725,31 @@ def api_host(oficina: Path, placar: dict[str, int]) -> dict:
                            encoding="utf-8", errors="replace")
         return r.returncode, (r.stdout if r.returncode == 0 else r.stderr).strip()
 
-    def http(url: str, timeout: float = 5) -> tuple[int, str]:
+    def http(url: str, timeout: float = 5, metodo: str = "GET", corpo: bytes | None = None,
+             cabecalhos: dict[str, str] | None = None) -> tuple[int, str]:
+        req = urllib.request.Request(url, data=corpo, method=metodo, headers=cabecalhos or {})
         try:
-            with sem_proxy.open(url, timeout=timeout) as resp:
+            with sem_proxy.open(req, timeout=timeout) as resp:
                 return resp.status, resp.read().decode("utf-8", "replace")
         except urllib.error.HTTPError as e:
             return e.code, e.read().decode("utf-8", "replace")
         except (urllib.error.URLError, OSError) as e:
             return 0, str(e)
 
+    def k8s(*args: str, entrada: str | None = None) -> tuple[int, str]:
+        m = motor() or "docker"
+        r = kubectl(m, list(args), entrada=entrada.encode() if entrada is not None else None)
+        saida = r.stdout if r.returncode == 0 else r.stderr
+        return r.returncode, saida.decode("utf-8", "replace").strip()
+
+    def terraform(pasta: Path, *args: str) -> tuple[int, str]:
+        r = subprocess.run(terraform_cmd(motor() or "docker", pasta, list(args)), capture_output=True,
+                           text=True, encoding="utf-8", errors="replace")
+        return r.returncode, (r.stdout + r.stderr).strip()
+
     return {"ok": ok, "falha": falha, "checar": checar, "docker": docker, "http": http,
-            "oficina": oficina}
+            "oficina": oficina, "k8s": k8s, "k3s_ligar": lambda: k3s_ligar(motor() or "docker"),
+            "rede_nuvem": lambda: rede_nuvem(motor() or "docker"), "terraform": terraform}
 
 
 def preparar_oficina(t: Ticket, recomecar: bool = False) -> Path:
@@ -658,6 +838,14 @@ def main(argv: list[str]) -> int:
         return comando_stop()
     if cmd == "doctor":
         return doctor(tickets)
+    if cmd == "kubectl":
+        return comando_kubectl(resto)
+    if cmd in ("k8s", "k3s"):
+        return comando_k8s(resto)
+    if cmd == "terraform":
+        return comando_terraform(resto)
+    if cmd == "aws":
+        return comando_aws(resto)
     if cmd == "check":
         alvo = resto[0] if resto else (ULTIMO.read_text(encoding="utf-8").strip() if ULTIMO.exists() else "")
         if not alvo:
@@ -682,3 +870,6 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         print()
         sys.exit(130)
+    except BrokenPipeError:  # saída cortada por head, less...: sair em silêncio
+        os.dup2(os.open(os.devnull, os.O_WRONLY), sys.stdout.fileno())
+        sys.exit(0)

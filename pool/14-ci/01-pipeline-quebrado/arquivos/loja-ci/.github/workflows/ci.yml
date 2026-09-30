@@ -1,0 +1,38 @@
+name: CI da loja
+
+on:
+  push:
+    branch: [main]
+  pull_request:
+
+jobs:
+  testes:
+    runs-on: ubuntu-lastest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+      - name: Avisa o que está sendo testado
+        run: echo "Testando o PR ${{ github.event.pull_request.title }}"
+      - name: Testes
+        run: python -m unittest discover -s app -v
+
+  imagem:
+    runs-on: ubuntu-latest
+    needs: teste
+    steps:
+      - uses: actions/checkout@v7
+      - uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Define a tag
+        id: meta
+        run: echo "tag=ghcr.io/${{ github.repository }}:${{ github.sha }}" >> "$GITHUB_OUTPUT"
+      - uses: docker/build-push-action@v7
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.metadata.outputs.tag }}

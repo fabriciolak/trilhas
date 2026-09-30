@@ -1,0 +1,107 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pagamento-config
+  namespace: pagamento
+data:
+  gateway_url: https://gateway.pinguim.exemplo/v2/pagar
+  token_gateway: tk-live-8841-5520-9913
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pagamento-codigo
+  namespace: pagamento
+data:
+  servidor.py: |
+    """Pagamento da Pinguim Store (simulado para o DevOps Gym)."""
+    import json
+    import os
+    import sys
+    from http.server import BaseHTTPRequestHandler, HTTPServer
+
+    for variavel in ("GATEWAY_URL", "TOKEN_GATEWAY"):
+        if not os.environ.get(variavel):
+            print(f"FATAL pagamento: {variavel} não definida", file=sys.stderr, flush=True)
+            sys.exit(1)
+
+    class Pagamento(BaseHTTPRequestHandler):
+        def do_GET(self):
+            if self.path == "/saude":
+                corpo, codigo = {"status": "ok"}, 200
+            elif self.path == "/":
+                corpo, codigo = {"servico": "pagamento", "gateway": os.environ["GATEWAY_URL"]}, 200
+            else:
+                corpo, codigo = {"erro": "não encontrado"}, 404
+            dados = json.dumps(corpo).encode()
+            self.send_response(codigo)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(dados)
+
+    print("pagamento: ouvindo na 8080; saúde em /saude", flush=True)
+    HTTPServer(("0.0.0.0", 8080), Pagamento).serve_forever()
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pagamento
+  namespace: pagamento
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pagamento
+  template:
+    metadata:
+      labels:
+        app: pagamento
+    spec:
+      containers:
+        - name: pagamento
+          image: python:3.14-alpine
+          command: ["python", "-u", "/app/servidor.py"]
+          ports:
+            - containerPort: 8080
+          env:
+            - name: GATEWAY_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: pagamento-config
+                  key: GATEWAY_URL
+            - name: TOKEN_GATEWAY
+              valueFrom:
+                configMapKeyRef:
+                  name: pagamento-config
+                  key: token_gateway
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            periodSeconds: 3
+          livenessProbe:
+            httpGet:
+              path: /saude
+              port: 8081
+            initialDelaySeconds: 0
+            periodSeconds: 3
+            failureThreshold: 1
+          volumeMounts:
+            - name: codigo
+              mountPath: /app
+      volumes:
+        - name: codigo
+          configMap:
+            name: pagamento-codigo
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pagamento
+  namespace: pagamento
+spec:
+  selector:
+    app: pagamento
+  ports:
+    - port: 80
+      targetPort: 8080

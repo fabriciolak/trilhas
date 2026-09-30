@@ -1,0 +1,4 @@
+# O que o Terraform gera e não vai para o Git
+.terraform/
+*.tfstate
+*.tfstate.*

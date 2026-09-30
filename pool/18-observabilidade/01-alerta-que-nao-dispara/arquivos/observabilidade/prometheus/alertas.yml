@@ -1,0 +1,10 @@
+groups:
+  - name: loja
+    rules:
+      - alert: ErrosNoCheckout
+        expr: rate(http_requests_total{status="500"}[1m]) > 0.1
+        for: 30s
+        labels:
+          severidade: critica
+        annotations:
+          resumo: "Checkout com muitos erros 500"
