@@ -1,0 +1,6 @@
+# Tudo que roda dentro do laboratório (Linux) precisa de fim de linha LF, mesmo num
+# clone feito no Windows; senão o bash quebra com "\r: command not found".
+* text=auto eol=lf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+*.png binary
