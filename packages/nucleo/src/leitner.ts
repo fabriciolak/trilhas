@@ -114,3 +114,26 @@ export function resumo(trilha: Trilha, progresso: Progresso): { total: number; f
   }
   return { total: ids.length, feitos, porCaixa };
 }
+
+/**
+ * Junta dois progressos da mesma trilha (ex.: o do navegador e o da pasta de trabalho):
+ * une os históricos, sem repetir, e refaz a agenda nota por nota, em ordem de data.
+ */
+export function mesclarProgresso(a: Progresso, b: Progresso): Progresso {
+  const vistos = new Set<string>();
+  const historico = [...a.historico, ...b.historico]
+    .filter((r) => {
+      const chave = `${r.data}|${r.itemId}|${r.nota}|${r.de}|${r.para}`;
+      if (vistos.has(chave)) return false;
+      vistos.add(chave);
+      return true;
+    })
+    .sort((x, y) => (x.data < y.data ? -1 : x.data > y.data ? 1 : 0));
+  let agenda: Record<string, Agenda> = {};
+  for (const r of historico) {
+    const de = agenda[r.itemId]?.caixa ?? 1;
+    const para = caixaNova(de, r.nota);
+    agenda = { ...agenda, [r.itemId]: { caixa: para, proxima: somarDias(r.data, INTERVALOS[para] ?? 16) } };
+  }
+  return { trilhaId: a.trilhaId, agenda, historico };
+}

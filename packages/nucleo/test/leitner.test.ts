@@ -57,3 +57,19 @@ describe("Leitner", () => {
     expect(resumo(r.trilha, p)).toEqual({ total: 2, feitos: 1, porCaixa: [1, 0, 0, 0, 0] });
   });
 });
+
+describe("mesclarProgresso", () => {
+  test("une os históricos sem repetir e refaz a agenda na ordem das datas", async () => {
+    const { mesclarProgresso } = await import("../src/leitner.ts");
+    let navegador = progressoVazio("t");
+    navegador = gravarNota(navegador, "a", "tranquilo", "2026-09-01");
+    let pasta = navegador;
+    pasta = gravarNota(pasta, "a", "tranquilo", "2026-09-03");
+    navegador = gravarNota(navegador, "b", "travei", "2026-09-02");
+    const m = mesclarProgresso(navegador, pasta);
+    expect(m.historico.map((r) => `${r.data} ${r.itemId}`)).toEqual(["2026-09-01 a", "2026-09-02 b", "2026-09-03 a"]);
+    expect(m.agenda.a).toEqual({ caixa: 3, proxima: "2026-09-07" });
+    expect(m.agenda.b).toEqual({ caixa: 1, proxima: "2026-09-03" });
+    expect(mesclarProgresso(m, m)).toEqual(m);
+  });
+});

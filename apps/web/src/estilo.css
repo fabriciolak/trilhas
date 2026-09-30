@@ -1,0 +1,219 @@
+@import "tailwindcss";
+
+/* Cores como tokens: claro por padrão, escuro pelo sistema ou pela escolha da pessoa. */
+:root {
+  --fundo: #f6f7fb;
+  --superficie: #ffffff;
+  --superficie-2: #f0f2f7;
+  --borda: #e1e5ee;
+  --texto: #111827;
+  --texto-2: #4b5563;
+  --texto-3: #8b93a3;
+  --primaria: #4f46e5;
+  --primaria-2: #eef0ff;
+  --primaria-texto: #ffffff;
+  --sucesso: #15803d;
+  --sucesso-2: #e8f6ed;
+  --erro: #c2410c;
+  --erro-2: #fdf0e8;
+  --aviso: #a16207;
+  --aviso-2: #fdf6e3;
+  --codigo: #f3f4f8;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-tema="claro"]) {
+    --fundo: #0b0f19;
+    --superficie: #121826;
+    --superficie-2: #1a2233;
+    --borda: #273044;
+    --texto: #e7eaf2;
+    --texto-2: #aab2c4;
+    --texto-3: #6f7a91;
+    --primaria: #8b8cff;
+    --primaria-2: #1e2140;
+    --primaria-texto: #0b0f19;
+    --sucesso: #4ade80;
+    --sucesso-2: #10261a;
+    --erro: #fb923c;
+    --erro-2: #2a1a10;
+    --aviso: #facc15;
+    --aviso-2: #2a2410;
+    --codigo: #0f1522;
+    color-scheme: dark;
+  }
+}
+
+:root[data-tema="escuro"] {
+  --fundo: #0b0f19;
+  --superficie: #121826;
+  --superficie-2: #1a2233;
+  --borda: #273044;
+  --texto: #e7eaf2;
+  --texto-2: #aab2c4;
+  --texto-3: #6f7a91;
+  --primaria: #8b8cff;
+  --primaria-2: #1e2140;
+  --primaria-texto: #0b0f19;
+  --sucesso: #4ade80;
+  --sucesso-2: #10261a;
+  --erro: #fb923c;
+  --erro-2: #2a1a10;
+  --aviso: #facc15;
+  --aviso-2: #2a2410;
+  --codigo: #0f1522;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-fundo: var(--fundo);
+  --color-superficie: var(--superficie);
+  --color-superficie-2: var(--superficie-2);
+  --color-borda: var(--borda);
+  --color-texto: var(--texto);
+  --color-texto-2: var(--texto-2);
+  --color-texto-3: var(--texto-3);
+  --color-primaria: var(--primaria);
+  --color-primaria-2: var(--primaria-2);
+  --color-primaria-texto: var(--primaria-texto);
+  --color-sucesso: var(--sucesso);
+  --color-sucesso-2: var(--sucesso-2);
+  --color-erro: var(--erro);
+  --color-erro-2: var(--erro-2);
+  --color-aviso: var(--aviso);
+  --color-aviso-2: var(--aviso-2);
+  --color-codigo: var(--codigo);
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Code", "JetBrains Mono", Menlo, Consolas, monospace;
+}
+
+html,
+body,
+#raiz {
+  height: 100%;
+}
+
+body {
+  background: var(--fundo);
+  color: var(--texto);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+:focus-visible {
+  outline: 2px solid var(--primaria);
+  outline-offset: 2px;
+}
+
+/* Markdown renderizado (aulas, enunciados, respostas do tutor). */
+.md {
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+.md > * + * {
+  margin-top: 0.75em;
+}
+.md h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+.md h2 {
+  font-size: 1.2rem;
+  font-weight: 650;
+  margin-top: 1.4em;
+}
+.md h3 {
+  font-size: 1.05rem;
+  font-weight: 650;
+  margin-top: 1.2em;
+}
+.md a {
+  color: var(--primaria);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.md ul {
+  list-style: disc;
+  padding-left: 1.4em;
+}
+.md ol {
+  list-style: decimal;
+  padding-left: 1.4em;
+}
+.md li + li {
+  margin-top: 0.25em;
+}
+.md strong {
+  font-weight: 650;
+}
+.md code {
+  font-family: var(--font-mono);
+  font-size: 0.88em;
+  background: var(--codigo);
+  border: 1px solid var(--borda);
+  border-radius: 5px;
+  padding: 0.08em 0.35em;
+}
+.md pre {
+  font-family: var(--font-mono);
+  font-size: 0.86rem;
+  line-height: 1.55;
+  background: var(--codigo);
+  border: 1px solid var(--borda);
+  border-radius: 10px;
+  padding: 0.9em 1em;
+  overflow-x: auto;
+}
+.md pre code {
+  background: none;
+  border: 0;
+  padding: 0;
+  font-size: inherit;
+}
+.md table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92em;
+  display: block;
+  overflow-x: auto;
+}
+.md th,
+.md td {
+  border: 1px solid var(--borda);
+  padding: 0.4em 0.6em;
+  text-align: left;
+  vertical-align: top;
+}
+.md th {
+  background: var(--superficie-2);
+  font-weight: 600;
+}
+.md blockquote {
+  border-left: 3px solid var(--primaria);
+  padding-left: 0.9em;
+  color: var(--texto-2);
+}
+.md hr {
+  border: 0;
+  border-top: 1px solid var(--borda);
+}
+
+/* Separadores dos painéis redimensionáveis. */
+.separador {
+  background: var(--borda);
+  transition: background 0.15s;
+}
+.separador:hover,
+.separador[data-separator="active"] {
+  background: var(--primaria);
+}
+
+.cm-editor {
+  height: 100%;
+  font-size: 14px;
+}
+.cm-editor .cm-scroller {
+  font-family: var(--font-mono);
+}
