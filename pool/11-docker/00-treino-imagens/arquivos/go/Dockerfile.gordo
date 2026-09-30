@@ -1,0 +1,7 @@
+# Uma etapa só: a imagem final leva o compilador inteiro junto.
+FROM golang:1.27-alpine
+WORKDIR /src
+COPY . .
+RUN go build -o /servidor .
+EXPOSE 8080
+CMD ["/servidor"]
